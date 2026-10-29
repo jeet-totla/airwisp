@@ -1,0 +1,66 @@
+# Generate the Xcode project with:  brew install xcodegen && xcodegen generate
+name: Airwisp
+options:
+  bundleIdPrefix: com.jeettotla
+  deploymentTarget:
+    macOS: "13.0"
+    iOS: "16.0"
+    watchOS: "9.0"
+packages:
+  AirwispCore:
+    path: Shared/AirwispCore
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    DEVELOPMENT_TEAM: ""        # set your Apple team ID (needed for Watch + HealthKit)
+targets:
+  AirwispMac:
+    type: application
+    platform: macOS
+    sources: [Mac/AirwispMac]
+    dependencies:
+      - package: AirwispCore
+    info:
+      path: Mac/AirwispMac/Info.plist
+    entitlements:
+      path: Mac/AirwispMac/AirwispMac.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jeettotla.airwisp.mac
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Automatic
+  AirwispPhone:
+    type: application
+    platform: iOS
+    sources: [Watch/AirwispPhone]
+    dependencies:
+      - package: AirwispCore
+      - target: AirwispWatch
+    info:
+      path: Watch/AirwispPhone/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jeettotla.airwisp
+        CODE_SIGN_STYLE: Automatic
+  AirwispWatch:
+    type: application
+    platform: watchOS
+    sources: [Watch/AirwispWatch]
+    dependencies:
+      - package: AirwispCore
+    info:
+      path: Watch/AirwispWatch/Info.plist
+    entitlements:
+      path: Watch/AirwispWatch/AirwispWatch.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jeettotla.airwisp.watchkitapp
+        COMPANION_BUNDLE_ID: com.jeettotla.airwisp
+        CODE_SIGN_STYLE: Automatic
+schemes:
+  AirwispMac:
+    build: { targets: { AirwispMac: all } }
+    run: { config: Debug }
+  AirwispPhone:
+    build: { targets: { AirwispPhone: all, AirwispWatch: all } }
+    run: { config: Debug }

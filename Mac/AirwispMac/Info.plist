@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key><string>Airwisp</string>
+    <key>CFBundleIdentifier</key><string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleShortVersionString</key><string>0.1</string>
+    <key>CFBundleVersion</key><string>1</string>
+    <key>CFBundlePackageType</key><string>APPL</string>
+    <key>LSUIElement</key><true/>
+    <key>NSCameraUsageDescription</key>
+    <string>Airwisp watches your hand with the camera to move the cursor. Video never leaves your Mac.</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Airwisp talks to your Apple Watch over your local network.</string>
+    <key>NSBonjourServices</key>
+    <array><string>_airwisp._udp</string></array>
+</dict>
+</plist>

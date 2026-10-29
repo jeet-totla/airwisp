@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key><string>Airwisp</string>
+    <key>CFBundleShortVersionString</key><string>0.1</string>
+    <key>CFBundleVersion</key><string>1</string>
+    <key>WKApplication</key><true/>
+    <key>WKCompanionAppBundleIdentifier</key><string>$(COMPANION_BUNDLE_ID)</string>
+    <key>NSMotionUsageDescription</key>
+    <string>Airwisp reads wrist motion to detect pinches and move the cursor.</string>
+    <key>NSHealthShareUsageDescription</key>
+    <string>Used only to keep Airwisp running while your wrist is down.</string>
+    <key>NSHealthUpdateUsageDescription</key>
+    <string>Used only to keep Airwisp running while your wrist is down.</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Airwisp talks to your Mac over your local network.</string>
+    <key>NSBonjourServices</key>
+    <array><string>_airwisp._udp</string></array>
+    <key>WKBackgroundModes</key>
+    <array><string>workout-processing</string></array>
+</dict>
+</plist>
