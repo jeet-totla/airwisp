@@ -5,7 +5,7 @@ Nothing in the apps has been compiled or run yet. Do these in order; each step u
 ## 0. Build
 1. `./scripts/setup.sh` (runs `swift test` on the core, generates the Xcode project).
 2. In Xcode set your Team on AirwispMac, AirwispPhone, AirwispWatch.
-3. Fix any compile errors (expect a few: the apps were written without a compiler). Most likely spots: `Controller.swift` closures, `Streamer.swift` HealthKit/WCSession delegates, `AirwispApp.swift` scene types.
+3. Fix any compile errors (expect a few: the apps were written without a compiler). Most likely spots: `Controller.swift` closures, `Streamer.swift` runtime-session/WCSession delegates, `AirwispApp.swift` scene types.
 4. `swift test` in `Shared/AirwispCore` must pass. If a Swift test disagrees with the Python tests, the Python reference is the spec.
 
 ## 1. Mac, camera only (no Watch)
@@ -21,7 +21,7 @@ Nothing in the apps has been compiled or run yet. Do these in order; each step u
 ## 2. Watch connection
 - [ ] iPhone: install AirwispPhone; Watch app installs. Grant Local Network, Motion, Health prompts on Watch.
 - [ ] Watch: tap Start. Mac menu shows Apple Watch row green with the Watch name within a few seconds.
-- [ ] Wrist-down for 60 s: still connected (workout session keeps it alive). If it drops, check HealthKit capability is enabled on the Watch target.
+- [ ] Wrist-down for 60 s: still connected (an extended runtime session keeps it alive for up to 1 hour). If it drops sooner, tell Claude. No Health permission is needed or requested.
 - [ ] Watch "Hold = pinch" button: tap = click on Mac, hold + move = drag, release drops.
 - [ ] Haptics: click on Mac causes a tap on the wrist; drag start and on/off also.
 - [ ] Turn Wi-Fi off on the Watch (use iPhone relay): the Watch app status says "Via iPhone" (the Mac row may stay on the last name until timeout), clicks still work. Note the added latency.

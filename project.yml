@@ -12,7 +12,7 @@ packages:
 settings:
   base:
     SWIFT_VERSION: "5.9"
-    DEVELOPMENT_TEAM: ""        # set your Apple team ID (needed for Watch + HealthKit)
+    DEVELOPMENT_TEAM: ""        # set your Apple team ID (needed to install on devices)
 targets:
   AirwispMac:
     type: application
@@ -50,8 +50,6 @@ targets:
       - package: AirwispCore
     info:
       path: Watch/AirwispWatch/Info.plist
-    entitlements:
-      path: Watch/AirwispWatch/AirwispWatch.entitlements
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.jeettotla.airwisp.watchkitapp

@@ -2,13 +2,13 @@ import Foundation
 import CoreMotion
 import Network
 import WatchKit
-import HealthKit
 import WatchConnectivity
 import AirwispCore
 
 /// Streams motion + gestures to the Mac over UDP (Bonjour-discovered) and plays haptics sent back.
-/// A workout session keeps the app running with the wrist down so streaming doesn't stall.
-final class Streamer: NSObject, ObservableObject, HKWorkoutSessionDelegate, WCSessionDelegate {
+/// An extended runtime session (physical-therapy type, up to 1 hour, no Health access) keeps the app
+/// running with the wrist down so streaming doesn't stall.
+final class Streamer: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate, WCSessionDelegate {
     @Published var status = "Searching for Mac…"
     @Published var connected = false
     @Published var running = false
@@ -22,8 +22,7 @@ final class Streamer: NSObject, ObservableObject, HKWorkoutSessionDelegate, WCSe
     private var seq: UInt16 = 0
     private var pinch = PinchDetector()
     private var flip = FlipDetector()
-    private let health = HKHealthStore()
-    private var workout: HKWorkoutSession?
+    private var runtime: WKExtendedRuntimeSession?
     private var imuDivider = 0
     private var viaPhone: Bool { !connected && WCSession.default.isReachable }
 
@@ -32,7 +31,7 @@ final class Streamer: NSObject, ObservableObject, HKWorkoutSessionDelegate, WCSe
         guard !running else { return }
         running = true
         if WCSession.isSupported() { WCSession.default.delegate = self; WCSession.default.activate() }
-        startWorkout()
+        startRuntime()
         startBrowsing()
         startMotion()
     }
@@ -41,21 +40,24 @@ final class Streamer: NSObject, ObservableObject, HKWorkoutSessionDelegate, WCSe
         running = false
         motion.stopDeviceMotionUpdates()
         browser?.cancel(); conn?.cancel(); conn = nil
-        workout?.end(); workout = nil
+        runtime?.invalidate(); runtime = nil
         connected = false; status = "Stopped"
     }
 
-    // MARK: workout (extended runtime)
-    private func startWorkout() {
-        health.requestAuthorization(toShare: [HKObjectType.workoutType()], read: []) { [weak self] ok, _ in
-            guard let self, ok else { return }
-            let cfg = HKWorkoutConfiguration(); cfg.activityType = .other; cfg.locationType = .indoor
-            guard let s = try? HKWorkoutSession(healthStore: self.health, configuration: cfg) else { return }
-            s.delegate = self; self.workout = s; s.startActivity(with: Date())
-        }
+    // MARK: extended runtime (keeps streaming alive with the wrist down; max 1 hour, then tap Start again)
+    private func startRuntime() {
+        let r = WKExtendedRuntimeSession()
+        r.delegate = self
+        runtime = r
+        r.start()          // must be called while the app is active (it is: the user just tapped Start)
     }
-    func workoutSession(_ s: HKWorkoutSession, didChangeTo to: HKWorkoutSessionState, from: HKWorkoutSessionState, date: Date) {}
-    func workoutSession(_ s: HKWorkoutSession, didFailWithError error: Error) {}
+    func extendedRuntimeSessionDidStart(_ s: WKExtendedRuntimeSession) {}
+    func extendedRuntimeSessionWillExpire(_ s: WKExtendedRuntimeSession) {
+        DispatchQueue.main.async { self.status = "Session ends soon, tap Start again" }
+    }
+    func extendedRuntimeSession(_ s: WKExtendedRuntimeSession, didInvalidateWith reason: WKExtendedRuntimeSessionInvalidationReason, error: Error?) {
+        DispatchQueue.main.async { if self.running { self.stop(); self.status = "Session ended, tap Start" } }
+    }
 
     // MARK: network
     private func startBrowsing() {
