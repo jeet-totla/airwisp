@@ -1,7 +1,9 @@
 import type { Msg } from './protocol'
 
 export interface Transport {
-  readonly kind: 'webrtc' | 'local'
+  readonly kind: 'webrtc' | 'peer' | 'local'
+  onState?: ((s: string) => void) | null
+  state?: string
   onMessage: ((m: Msg) => void) | null
   onPeers: ((count: number) => void) | null
   send(m: Msg): void

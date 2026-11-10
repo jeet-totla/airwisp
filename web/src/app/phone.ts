@@ -21,7 +21,7 @@ export async function runPhone(code: string | null, local: boolean): Promise<voi
   mount(h('div', { class: 'screen' }, h('div', { class: 'top' }, brand(), h('span', { class: 'muted' }, room)), h('div', { class: 'phone-view' }, video, overlay), sheet))
 
   let tr: Transport
-  try { tr = await connect(room, local) } catch (e) { return fail(title, detail, 'Could not reach the laptop', 'Check your internet connection and scan the code again.') }
+  try { tr = await connect(room, local, 'phone') } catch (e) { return fail(title, detail, 'Could not reach the laptop', 'Check your internet connection and scan the code again.') }
   let hostSeen = 0
   tr.onMessage = () => { hostSeen = performance.now() }
   const beat = window.setInterval(() => tr.send({ k: 'hello', role: 'phone', v: 1 }), 1000)
@@ -60,8 +60,8 @@ export async function runPhone(code: string | null, local: boolean): Promise<voi
       if (!linked) {
         title.textContent = 'Looking for your laptop…'
         detail.textContent = now - startedAt > 20000
-          ? 'Still no link. Keep your laptop on the QR screen, turn off any VPN or Private Relay, then reload this page.'
-          : 'Keep this page open. Your laptop should show “Phone connected” in a moment.'
+          ? `Still no link (${tr.state ?? 'no status'}). Keep your laptop on the QR screen, turn off any VPN or Private Relay, then reload this page.`
+          : (tr.state ?? 'Keep this page open.') + ' Your laptop should show “Phone connected” in a moment.'
         return
       }
       title.textContent = good ? 'Connected. This view is perfect.' : d === 'none' ? 'Connected. Show your hand to this camera' : 'Connected. ' + distanceText[d]

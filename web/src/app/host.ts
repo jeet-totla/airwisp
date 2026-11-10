@@ -1,15 +1,13 @@
-import { h, brand, mount, qrDataUrl, safeStorage, drawCam, toast } from './ui'
+import { h, brand, mount, qrDataUrl, drawCam, toast } from './ui'
 import { Session } from './session'
 import { connect } from '../net/connect'
 import { newRoomCode } from '../net/protocol'
 import { distanceText, lightText } from '../vision/metrics'
 import { playground } from './playground'
 
-const store = safeStorage()
-
 export function runHost(opts: { sim: boolean; local: boolean }): void {
   const s = new Session()
-  let room = store.get('airwisp-room') ?? ''
+  let room = ''
   const steps = (now: number, twoCam: boolean) => {
     const names = twoCam ? ['Pair phone', 'Check view', 'Calibrate', 'Play'] : ['Check view', 'Calibrate', 'Play']
     return h('div', { class: 'steps' }, ...names.map((n, i) => h('span', { class: i < now ? 'done' : i === now ? 'now' : '' }, n)))
@@ -33,15 +31,24 @@ export function runHost(opts: { sim: boolean; local: boolean }): void {
   async function demo(): Promise<void> { await s.startDemo(); play(false) }
 
   async function pair(): Promise<void> {
-    if (!room) { room = newRoomCode(); store.set('airwisp-room', room) }
-    const url = new URL(location.href); url.search = ''; url.hash = ''
-    url.searchParams.set('join', room); if (opts.local) url.searchParams.set('local', '1')
-    const link = url.toString()
     const img = h('img', { alt: 'QR code to open Airwisp on your phone' }) as HTMLImageElement
     const status = h('div', { class: 'status-line' }, h('i'), h('span', null, 'Waiting for your phone'))
     const tip = h('p', { class: 'fine', hidden: true }, 'Taking a while? Keep this page open, turn off any VPN or iCloud Private Relay on both devices, then press Reconnect.')
     const next = h('button', { class: 'btn', disabled: true, onclick: () => check(true) }, 'Continue') as HTMLButtonElement
-    const link2 = async () => { s.detach(); s.attach(await connect(room, opts.local)); hookPhone() }
+    const codeEl = h('div', { class: 'code' })
+    const diag = h('p', { class: 'fine' })
+    const link2 = async () => {
+      s.detach()
+      room = newRoomCode()
+      const url = new URL(location.href); url.search = ''; url.hash = ''
+      url.searchParams.set('join', room); if (opts.local) url.searchParams.set('local', '1')
+      codeEl.textContent = room
+      qrDataUrl(url.toString()).then(d => { img.src = d })
+      const tr = await connect(room, opts.local, 'host')
+      tr.onState = st => { diag.textContent = st }
+      diag.textContent = tr.state ?? ''
+      s.attach(tr); hookPhone()
+    }
     const hookPhone = () => {
       s.onPhone = p => {
         status.classList.toggle('ok', p.connected)
@@ -58,11 +65,10 @@ export function runHost(opts: { sim: boolean; local: boolean }): void {
             h('li', null, 'Open your phone camera and scan this code.'),
             h('li', null, 'Allow camera access when asked.'),
             h('li', null, 'Prop the phone to the side of your hand, about an arm’s length away, facing it.')),
-          status, tip,
+          status, diag, tip,
           h('div', { class: 'row' }, next, h('button', { class: 'btn quiet', onclick: () => { tip.hidden = true; void link2() } }, 'Reconnect'), h('button', { class: 'btn quiet', onclick: landing }, 'Back')),
-          h('p', { class: 'fine' }, 'No camera on your phone? Type the code ', h('b', null, room), ' at this page’s address on your phone.')),
-        h('div', null, h('div', { class: 'qr' }, img), h('div', { class: 'code' }, room)))))
-    img.src = await qrDataUrl(link)
+          h('p', { class: 'fine' }, 'No camera on your phone? Open this page’s address on your phone and type the code.')),
+        h('div', null, h('div', { class: 'qr' }, img), codeEl))))
     await link2()
     window.setTimeout(() => { if (!s.phone.connected) tip.hidden = false }, 15000)
   }
