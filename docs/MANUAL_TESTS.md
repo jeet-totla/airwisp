@@ -43,3 +43,9 @@ Nothing in the apps has been compiled or run yet. Do these in order; each step u
 
 ## Report back
 Note which steps fail and what the symptoms are; the most likely early failures are compile errors, wrong axis signs, and pinch thresholds.
+
+## Web version (real cameras; needs https, e.g. the GitHub Pages URL)
+1. Laptop: open the site, choose "Laptop camera only". Allow camera. Hand outline should appear; "Distance looks good" when your hand is an arm's length away.
+2. Calibrate (4 dots), then in the playground: point at a pad, pinch to click, pinch + move to draw, peace sign + up/down to scroll, hold a fist to pause/resume.
+3. Phone: choose "Laptop and phone", scan the QR code on the phone, allow camera, prop it to the side. Laptop shows "Phone connected"; the phone shows a green "Perfect" sheet when placed well.
+4. Compare clicking accuracy with and without the phone. Note anything off (distance thresholds in `web/src/vision/metrics.ts` are first guesses).

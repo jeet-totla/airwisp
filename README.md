@@ -35,3 +35,13 @@ Then set your Apple team on all three targets, run `AirwispMac`, run `AirwispPho
 - Pinch detection from Watch IMU is a heuristic; needs on-device tuning (sensitivity slider provided). The Watch's "Hold = pinch" button is the reliable fallback.
 - Watch-only pinch is a tap (no drag by finger alone); drag works with camera pinch or the hold button.
 - Right click and camera-assisted drag are backlog.
+
+## Web version (no install)
+
+`web/` is a website version: laptop webcam + phone camera, paired with a QR code, hand tracking in the browser (MediaPipe), nothing uploaded. It controls an in-page cursor (a website cannot move the OS cursor).
+
+```bash
+cd web && npm install && npm run dev      # open the printed https URL
+npm test && npm run build && npm run e2e  # unit tests, build, browser smoke test (demo hand)
+```
+Try without a camera: choose "Try it with your mouse". Deployed by `.github/workflows/pages.yml` to GitHub Pages (enable Pages → Source: GitHub Actions).
