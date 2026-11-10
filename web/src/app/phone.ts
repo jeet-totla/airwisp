@@ -22,7 +22,12 @@ export async function runPhone(code: string | null, local: boolean): Promise<voi
 
   let tr: Transport
   try { tr = await connect(room, local) } catch (e) { return fail(title, detail, 'Could not reach the laptop', 'Check your internet connection and scan the code again.') }
+  let hostSeen = 0
+  tr.onMessage = () => { hostSeen = performance.now() }
+  const beat = window.setInterval(() => tr.send({ k: 'hello', role: 'phone', v: 1 }), 1000)
   tr.send({ k: 'hello', role: 'phone', v: 1 })
+  const startedAt = performance.now()
+  void beat
 
   let wake: WakeLockSentinel | null = null
   try { wake = await (navigator as any).wakeLock?.request('screen') } catch { /* optional */ }
@@ -48,11 +53,19 @@ export async function runPhone(code: string | null, local: boolean): Promise<voi
     if (now - lastStatus > 400) {
       lastStatus = now
       tr.send({ k: 'status', hand: seen, palm, light, fps })
+      const linked = now - hostSeen < 3500
       const d = distanceHint(palm), l = lightHint(light)
       const good = d === 'good' && l === 'ok'
-      sheet.classList.toggle('ok', good)
-      title.textContent = good ? 'Perfect. Keep this view.' : d === 'none' ? 'Show your hand to this camera' : distanceText[d]
-      detail.textContent = good ? 'Your laptop shows the rest.' : l !== 'ok' ? lightText[l] : 'Aim the phone at your hand from the side, about an arm’s length away.'
+      sheet.classList.toggle('ok', good && linked)
+      if (!linked) {
+        title.textContent = 'Looking for your laptop…'
+        detail.textContent = now - startedAt > 20000
+          ? 'Still no link. Keep your laptop on the QR screen, turn off any VPN or Private Relay, then reload this page.'
+          : 'Keep this page open. Your laptop should show “Phone connected” in a moment.'
+        return
+      }
+      title.textContent = good ? 'Connected. This view is perfect.' : d === 'none' ? 'Connected. Show your hand to this camera' : 'Connected. ' + distanceText[d]
+      detail.textContent = good ? 'Go back to your laptop for the next step.' : l !== 'ok' ? lightText[l] : 'Aim the phone at your hand from the side, about an arm’s length away.'
     }
   })
 }

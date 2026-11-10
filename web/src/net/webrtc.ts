@@ -16,7 +16,11 @@ export class WebRtcTransport implements Transport {
   private peers = new Set<string>()
 
   constructor(roomCode: string) {
-    this.room = joinRoom({ appId: 'airwisp-web-v1' }, roomCode)
+    this.room = joinRoom({
+      appId: 'airwisp-web-v1',
+      relayConfig: { redundancy: 4 },
+      rtcConfig: { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] }] },
+    }, roomCode)
     this.action = this.room.makeAction('msg') as unknown as WebRtcTransport['action']
     this.action.onMessage = (data: Msg) => { this.onMessage?.(data) }
     this.room.onPeerJoin = (id: string) => { this.peers.add(id); this.onPeers?.(this.peers.size) }

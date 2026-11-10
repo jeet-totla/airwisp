@@ -185,3 +185,33 @@ describe('Pipeline end to end (synthetic hand, front only)', () => {
     const k = kinds(acts); expect(k).toContain('down:left'); expect(k).toContain('up:left')
   })
 })
+
+describe('Homography calibration', () => {
+  const truth = (x: number, y: number): [number, number] => {
+    const w = 0.2 * x + 0.1 * y + 1
+    return [(0.9 * x - 0.1 * y + 0.05) / w, (0.15 * x + 1.1 * y - 0.2) / w]
+  }
+  const pts: [number, number][] = [[0.3, 0.3], [0.7, 0.32], [0.72, 0.7], [0.28, 0.68], [0.5, 0.5]]
+  it('recovers a projective map from five points', () => {
+    const m = new Mapper()
+    const err = m.setCalibration(pts.map(p => ({ cam: p, screen: truth(...p) })))
+    expect(err).toBeLessThan(1e-6)
+    const probe: [number, number] = [0.4, 0.6]
+    const e = truth(...probe), r = m.toUnit(...probe)
+    expect(r[0]).toBeCloseTo(Math.min(1, Math.max(0, e[0])), 4); expect(r[1]).toBeCloseTo(Math.min(1, Math.max(0, e[1])), 4)
+  })
+  it('reports a large error when a point is wrong', () => {
+    const m = new Mapper()
+    const pairs = pts.map(p => ({ cam: p, screen: truth(...p) }))
+    pairs[4] = { cam: pts[4], screen: [0.9, 0.1] }
+    expect(m.setCalibration(pairs)).toBeGreaterThan(0.05)
+  })
+})
+
+describe('PinchVote thresholds', () => {
+  it('uses per-source thresholds', () => {
+    const v = new PinchVote(); v.thresholds.front = { close: 0.5, open: 1.0 }
+    let t = 0
+    expect(v.report('front', t += 0.03, 0.45)).toBe('down')
+  })
+})

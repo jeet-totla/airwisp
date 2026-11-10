@@ -7,8 +7,8 @@ import { Source } from './types'
  * Any single source can drop out and the vote still works.
  */
 export class PinchVote {
-  closeAt = 0.25   // ratio at or below this = fully pinched
-  openAt = 0.45    // ratio at or above this = fully open
+  /** Per-source ratio thresholds: at or below close = fully pinched, at or above open = fully open. Set by the pinch calibration. */
+  thresholds: Record<Source, { close: number; open: number }> = { front: { close: 0.25, open: 0.45 }, side: { close: 0.25, open: 0.45 } }
   pressAt = 0.6    // consensus above this => pinched
   releaseAt = 0.35 // consensus below this => released
   freshness = 0.15 // seconds a source report stays valid
@@ -24,7 +24,7 @@ export class PinchVote {
   /** Report a measurement. Returns 'down' | 'up' on a state change. */
   report(src: Source, t: number, ratio: number | null): 'down' | 'up' | null {
     if (ratio === null) delete this.last[src]
-    else this.last[src] = { t, score: PinchVote.score(ratio, this.closeAt, this.openAt) }
+    else this.last[src] = { t, score: PinchVote.score(ratio, this.thresholds[src].close, this.thresholds[src].open) }
     return this.evaluate(t)
   }
 

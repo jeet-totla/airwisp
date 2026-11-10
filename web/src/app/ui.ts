@@ -59,3 +59,22 @@ export function drawHand(canvas: HTMLCanvasElement, hand: { x: number; y: number
   ctx.fillStyle = glow
   for (const i of [4, 8]) { ctx.beginPath(); ctx.arc(hand[i].x * w, hand[i].y * hgt, 7, 0, 7); ctx.fill() }
 }
+
+/** Draws the current camera frame (cover-fit) and, optionally, the hand skeleton on top. Mirror with the .mirror CSS class. */
+export function drawCam(canvas: HTMLCanvasElement, video: HTMLVideoElement, hand: { x: number; y: number }[] | null): void {
+  const vw = video.videoWidth, vh = video.videoHeight
+  if (!vw || !vh) return
+  if (canvas.width !== vw) canvas.width = vw
+  if (canvas.height !== vh) canvas.height = vh
+  const ctx = canvas.getContext('2d'); if (!ctx) return
+  ctx.drawImage(video, 0, 0, vw, vh)
+  if (!hand) return
+  ctx.lineWidth = Math.max(3, vw / 320); ctx.strokeStyle = '#6C4DFF'; ctx.lineCap = 'round'
+  ctx.beginPath()
+  for (const [a, b] of CONNECTIONS) { ctx.moveTo(hand[a].x * vw, hand[a].y * vh); ctx.lineTo(hand[b].x * vw, hand[b].y * vh) }
+  ctx.stroke()
+  ctx.fillStyle = '#fff'
+  for (const p of hand) { ctx.beginPath(); ctx.arc(p.x * vw, p.y * vh, ctx.lineWidth * 0.9, 0, 7); ctx.fill() }
+  ctx.fillStyle = '#FFB830'
+  for (const i of [4, 8]) { ctx.beginPath(); ctx.arc(hand[i].x * vw, hand[i].y * vh, ctx.lineWidth * 2, 0, 7); ctx.fill() }
+}

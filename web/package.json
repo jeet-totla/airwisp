@@ -8,7 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",
     "test": "vitest run",
-    "e2e": "node e2e/run.mjs",
+    "e2e": "node e2e/run.mjs && node e2e/pair.mjs && node e2e/calibrate.mjs",
     "prepare:assets": "node scripts/copy-assets.mjs",
     "predev": "npm run prepare:assets",
     "prebuild": "npm run prepare:assets"
